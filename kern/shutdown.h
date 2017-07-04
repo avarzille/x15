@@ -29,8 +29,6 @@ struct shutdown_ops {
 
 void shutdown_setup(void);
 
-void shutdown_register_shell_cmds(void);
-
 void shutdown_register(struct shutdown_ops *ops, unsigned int priority);
 
 noreturn void shutdown_halt(void);

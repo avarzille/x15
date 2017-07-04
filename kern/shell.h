@@ -21,6 +21,7 @@
 #ifndef _KERN_SHELL_H
 #define _KERN_SHELL_H
 
+#include <kern/bulletin.h>
 #include <kern/error.h>
 #include <kern/macros.h>
 
@@ -75,6 +76,12 @@ void shell_setup(void);
  * Start the shell thread.
  */
 void shell_start(void);
+
+/*
+ * Return the bulletin to subscribe to in order to be notified when
+ * registering commands is allowed.
+ */
+struct bulletin * shell_get_bulletin(void);
 
 /*
  * Register a shell command.

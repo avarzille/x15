@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <kern/bulletin.h>
 #include <kern/console.h>
 #include <kern/error.h>
 #include <kern/hash.h>
@@ -27,6 +28,12 @@
 #include <kern/mutex.h>
 #include <kern/shell.h>
 #include <kern/thread.h>
+
+/*
+ * Bulletin used to notify users when registering shell commands becomes
+ * allowed.
+ */
+static __initdata BULLETIN_DECLARE(shell_bulletin);
 
 /*
  * Binary exponent and size of the hash table used to store commands.
@@ -462,6 +469,12 @@ shell_cmd_add(struct shell_cmd *cmd)
 out:
     shell_cmd_add_list(cmd);
     return 0;
+}
+
+struct bulletin * __init
+shell_get_bulletin(void)
+{
+    return &shell_bulletin;
 }
 
 int
@@ -1195,6 +1208,8 @@ shell_setup(void)
         error = shell_cmd_register(&shell_default_cmds[i]);
         error_check(error, "shell_cmd_register");
     }
+
+    bulletin_publish(&shell_bulletin);
 }
 
 void __init

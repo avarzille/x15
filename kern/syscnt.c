@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include <kern/atomic.h>
+#include <kern/bulletin.h>
 #include <kern/init.h>
 #include <kern/list.h>
 #include <kern/mutex.h>
@@ -32,13 +33,6 @@
 static struct list syscnt_list;
 static struct mutex syscnt_lock;
 
-void __init
-syscnt_setup(void)
-{
-    list_init(&syscnt_list);
-    mutex_init(&syscnt_lock);
-}
-
 #ifdef X15_SHELL
 
 static void
@@ -50,19 +44,39 @@ syscnt_shell_info(int argc, char **argv)
     syscnt_info(prefix);
 }
 
-
 static struct shell_cmd syscnt_shell_cmds[] = {
     SHELL_CMD_INITIALIZER("syscnt_info", syscnt_shell_info,
                           "syscnt_info [<prefix>]",
                           "display information about system counters"),
 };
 
+static void __init
+syscnt_register_shell_cmds(void *arg)
+{
+    (void)arg;
+    SHELL_REGISTER_CMDS(syscnt_shell_cmds);
+}
+
+static struct bulletin_subscriber syscnt_shell_subscriber __initdata;
+
+static void __init
+syscnt_subscribe_shell(void)
+{
+    bulletin_subscriber_init(&syscnt_shell_subscriber,
+                             syscnt_register_shell_cmds, NULL);
+    bulletin_subscribe(shell_get_bulletin(), &syscnt_shell_subscriber);
+}
+
+#else /* X15_SHELL */
+#define syscnt_subscribe_shell()
 #endif /* X15_SHELL */
 
 void __init
-syscnt_register_shell_cmds(void)
+syscnt_setup(void)
 {
-    SHELL_REGISTER_CMDS(syscnt_shell_cmds);
+    syscnt_subscribe_shell();
+    list_init(&syscnt_list);
+    mutex_init(&syscnt_lock);
 }
 
 void __init

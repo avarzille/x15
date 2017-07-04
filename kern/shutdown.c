@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 
+#include <kern/bulletin.h>
 #include <kern/init.h>
 #include <kern/plist.h>
 #include <kern/shell.h>
@@ -54,18 +55,32 @@ static struct shell_cmd shutdown_shell_cmds[] = {
         "reboot the system"),
 };
 
+static void __init
+shutdown_register_shell_cmds(void *arg)
+{
+    (void)arg;
+    SHELL_REGISTER_CMDS(shutdown_shell_cmds);
+}
+
+static struct bulletin_subscriber shutdown_shell_subscriber __initdata;
+
+static void __init
+shutdown_subscribe_shell(void)
+{
+    bulletin_subscriber_init(&shutdown_shell_subscriber,
+                             shutdown_register_shell_cmds, NULL);
+    bulletin_subscribe(shell_get_bulletin(), &shutdown_shell_subscriber);
+}
+
+#else /* X15_SHELL */
+#define shutdown_subscribe_shell()
 #endif /* X15_SHELL */
 
 void __init
 shutdown_setup(void)
 {
+    shutdown_subscribe_shell();
     plist_init(&shutdown_ops_list);
-}
-
-void __init
-shutdown_register_shell_cmds(void)
-{
-    SHELL_REGISTER_CMDS(shutdown_shell_cmds);
 }
 
 void __init

@@ -49,6 +49,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <kern/bulletin.h>
 #include <kern/init.h>
 #include <kern/list.h>
 #include <kern/log2.h>
@@ -1171,6 +1172,25 @@ static struct shell_cmd kmem_shell_cmds[] = {
         "display information about kernel memory and caches"),
 };
 
+static void __init
+kmem_register_shell_cmds(void *arg)
+{
+    (void)arg;
+    SHELL_REGISTER_CMDS(kmem_shell_cmds);
+}
+
+static struct bulletin_subscriber kmem_shell_subscriber __initdata;
+
+static void __init
+kmem_subscribe_shell(void)
+{
+    bulletin_subscriber_init(&kmem_shell_subscriber,
+                             kmem_register_shell_cmds, NULL);
+    bulletin_subscribe(shell_get_bulletin(), &kmem_shell_subscriber);
+}
+
+#else /* X15_SHELL */
+#define kmem_subscribe_shell()
 #endif /* X15_SHELL */
 
 void __init
@@ -1183,6 +1203,7 @@ kmem_setup(void)
     /* Make sure a bufctl can always be stored in a buffer */
     assert(sizeof(union kmem_bufctl) <= KMEM_ALIGN_MIN);
 
+    kmem_subscribe_shell();
     list_init(&kmem_cache_list);
     mutex_init(&kmem_cache_list_lock);
 
@@ -1208,8 +1229,6 @@ kmem_setup(void)
         kmem_cache_init(&kmem_caches[i], name, size, 0, NULL, 0);
         size <<= 1;
     }
-
-    SHELL_REGISTER_CMDS(kmem_shell_cmds);
 }
 
 static inline size_t

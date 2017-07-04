@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <kern/bulletin.h>
 #include <kern/error.h>
 #include <kern/init.h>
 #include <kern/kmem.h>
@@ -99,18 +100,36 @@ static struct shell_cmd task_shell_cmds[] = {
                           "display tasks and threads"),
 };
 
+static void __init
+task_register_shell_cmds(void *arg)
+{
+    (void)arg;
+    SHELL_REGISTER_CMDS(task_shell_cmds);
+}
+
+static struct bulletin_subscriber task_shell_subscriber __initdata;
+
+static void __init
+task_subscribe_shell(void)
+{
+    bulletin_subscriber_init(&task_shell_subscriber,
+                             task_register_shell_cmds, NULL);
+    bulletin_subscribe(shell_get_bulletin(), &task_shell_subscriber);
+}
+
+#else /* X15_SHELL */
+#define task_subscribe_shell()
 #endif /* X15_SHELL */
 
 void __init
 task_setup(void)
 {
+    task_subscribe_shell();
     kmem_cache_init(&task_cache, "task", sizeof(struct task), 0, NULL, 0);
     list_init(&task_list);
     spinlock_init(&task_list_lock);
     task_init(kernel_task, "x15", kernel_map);
     list_insert_head(&task_list, &kernel_task->node);
-
-    SHELL_REGISTER_CMDS(task_shell_cmds);
 }
 
 int

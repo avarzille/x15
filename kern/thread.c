@@ -91,6 +91,7 @@
 #include <string.h>
 
 #include <kern/atomic.h>
+#include <kern/bulletin.h>
 #include <kern/condition.h>
 #include <kern/cpumap.h>
 #include <kern/error.h>
@@ -2292,12 +2293,33 @@ static struct shell_cmd thread_shell_cmds[] = {
                           "display the stack trace of a given thread"),
 };
 
+static void __init
+thread_register_shell_cmds(void *arg)
+{
+    (void)arg;
+    SHELL_REGISTER_CMDS(thread_shell_cmds);
+}
+
+static struct bulletin_subscriber thread_shell_subscriber __initdata;
+
+static void __init
+thread_subscribe_shell(void)
+{
+    bulletin_subscriber_init(&thread_shell_subscriber,
+                             thread_register_shell_cmds, NULL);
+    bulletin_subscribe(shell_get_bulletin(), &thread_shell_subscriber);
+}
+
+#else /* X15_SHELL */
+#define thread_subscribe_shell()
 #endif /* X15_SHELL */
 
 void __init
 thread_setup(void)
 {
     int cpu;
+
+    thread_subscribe_shell();
 
     for (cpu = 1; (unsigned int)cpu < cpu_count(); cpu++) {
         thread_bootstrap_common(cpu);
@@ -2315,8 +2337,6 @@ thread_setup(void)
     cpumap_for_each(&thread_active_runqs, cpu) {
         thread_setup_runq(percpu_ptr(thread_runq, cpu));
     }
-
-    SHELL_REGISTER_CMDS(thread_shell_cmds);
 }
 
 int

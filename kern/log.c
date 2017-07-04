@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <kern/bulletin.h>
 #include <kern/cbuf.h>
 #include <kern/init.h>
 #include <kern/log.h>
@@ -396,11 +397,31 @@ static struct shell_cmd log_shell_cmds[] = {
         " 7: debug"),
 };
 
+static void __init
+log_register_shell_cmds(void *arg)
+{
+    (void)arg;
+    SHELL_REGISTER_CMDS(log_shell_cmds);
+}
+
+static struct bulletin_subscriber log_shell_subscriber __initdata;
+
+static void __init
+log_subscribe_shell(void)
+{
+    bulletin_subscriber_init(&log_shell_subscriber,
+                             log_register_shell_cmds, NULL);
+    bulletin_subscribe(shell_get_bulletin(), &log_shell_subscriber);
+}
+
+#else /* X15_SHELL */
+#define log_subscribe_shell()
 #endif /* X15_SHELL */
 
 void __init
 log_setup(void)
 {
+    log_subscribe_shell();
     cbuf_init(&log_cbuf, log_buffer, sizeof(log_buffer));
     log_index = cbuf_start(&log_cbuf);
     spinlock_init(&log_lock);
@@ -420,8 +441,6 @@ log_start(void)
     if (error) {
         panic("log: unable to create thread");
     }
-
-    SHELL_REGISTER_CMDS(log_shell_cmds);
 }
 
 static void

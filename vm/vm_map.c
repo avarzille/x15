@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <kern/bulletin.h>
 #include <kern/error.h>
 #include <kern/init.h>
 #include <kern/kmem.h>
@@ -728,11 +729,31 @@ static struct shell_cmd vm_map_shell_cmds[] = {
         "display information about a VM map"),
 };
 
+static void __init
+vm_map_register_shell_cmds(void *arg)
+{
+    (void)arg;
+    SHELL_REGISTER_CMDS(vm_map_shell_cmds);
+}
+
+static struct bulletin_subscriber vm_map_shell_subscriber __initdata;
+
+static void __init
+vm_map_subscribe_shell(void)
+{
+    bulletin_subscriber_init(&vm_map_shell_subscriber,
+                             vm_map_register_shell_cmds, NULL);
+    bulletin_subscribe(shell_get_bulletin(), &vm_map_shell_subscriber);
+}
+
+#else /* X15_SHELL */
+#define vm_map_subscribe_shell()
 #endif /* X15_SHELL */
 
 void __init
 vm_map_setup(void)
 {
+    vm_map_subscribe_shell();
     vm_map_init(kernel_map, kernel_pmap,
                 PMAP_MIN_KMEM_ADDRESS, PMAP_MAX_KMEM_ADDRESS);
     kmem_cache_init(&vm_map_entry_cache, "vm_map_entry",
@@ -740,7 +761,6 @@ vm_map_setup(void)
                     KMEM_CACHE_PAGE_ONLY);
     kmem_cache_init(&vm_map_cache, "vm_map", sizeof(struct vm_map),
                     0, NULL, 0);
-    SHELL_REGISTER_CMDS(vm_map_shell_cmds);
 }
 
 int
