@@ -16,6 +16,9 @@ x15_SOURCES +=                                              \
         kern/bitmap.c                                       \
         kern/bitmap.h                                       \
         kern/bitmap_i.h                                     \
+        kern/bulletin.c                                     \
+        kern/bulletin.h                                     \
+        kern/bulletin_i.h                                   \
         kern/cbuf.c                                         \
         kern/cbuf.h                                         \
         kern/condition.c                                    \
