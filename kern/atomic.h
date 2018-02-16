@@ -32,6 +32,8 @@
 /*
  * Supported memory orders.
  */
+#ifndef ATOMIC_RELAXED
+
 #define ATOMIC_RELAXED   __ATOMIC_RELAXED
 #define ATOMIC_CONSUME   __ATOMIC_CONSUME
 #define ATOMIC_ACQUIRE   __ATOMIC_ACQUIRE
@@ -39,30 +41,55 @@
 #define ATOMIC_ACQ_REL   __ATOMIC_ACQ_REL
 #define ATOMIC_SEQ_CST   __ATOMIC_SEQ_CST
 
+#endif /* ATOMIC_RELAXED */
+
 /*
  * Type-generic atomic operations.
  */
+
+#ifndef atomic_fetch_add
 #define atomic_fetch_add(ptr, val, mo)  __atomic_fetch_add(ptr, val, mo)
+#endif
 
+#ifndef atomic_fetch_sub
 #define atomic_fetch_sub(ptr, val, mo)  __atomic_fetch_sub(ptr, val, mo)
+#endif
 
+#ifndef atomic_fetch_and
 #define atomic_fetch_and(ptr, val, mo)  __atomic_fetch_and(ptr, val, mo)
+#endif
 
+#ifndef atomic_fetch_or
 #define atomic_fetch_or(ptr, val, mo)   __atomic_fetch_or(ptr, val, mo)
+#endif
 
+#ifndef atomic_fetch_xor
 #define atomic_fetch_xor(ptr, val, mo)  __atomic_fetch_xor(ptr, val, mo)
+#endif
 
+#ifndef atomic_add
 #define atomic_add(ptr, val, mo)        (void)__atomic_add_fetch(ptr, val, mo)
+#endif
 
+#ifndef atomic_sub
 #define atomic_sub(ptr, val, mo)        (void)__atomic_sub_fetch(ptr, val, mo)
+#endif
 
+#ifndef atomic_and
 #define atomic_and(ptr, val, mo)        (void)__atomic_and_fetch(ptr, val, mo)
+#endif
 
+#ifndef atomic_or
 #define atomic_or(ptr, val, mo)         (void)__atomic_or_fetch(ptr, val, mo)
+#endif
 
+#ifndef atomic_xor
 #define atomic_xor(ptr, val, mo)        (void)__atomic_xor_fetch(ptr, val, mo)
+#endif
 
+#ifndef atomic_swap
 #define atomic_swap(ptr, val, mo)       __atomic_exchange_n(ptr, val, mo)
+#endif
 
 /*
  * For compare-and-swap, deviate a little from the standard, and only
@@ -87,7 +114,8 @@ MACRO_BEGIN                                                         \
     __atomic_compare_exchange_n(ptr, &oval_, nval_, false,          \
                                 mo, ATOMIC_RELAXED);                \
     oval_;                                                          \
-MACRO_END
+
+#endif /* atomic_cas */
 
 /*
  * Some architectures may need specific definitions for loads and stores,
@@ -96,11 +124,11 @@ MACRO_END
  * module didn't already.
  */
 
-#ifndef ATOMIC_ARCH_SPECIFIC_LOAD
+#ifndef atomic_load
 #define atomic_load(ptr, mo) __atomic_load_n(ptr, mo)
 #endif
 
-#ifndef ATOMIC_ARCH_SPECIFIC_STORE
+#ifndef atomic_store
 #define atomic_store(ptr, val, mo) __atomic_store_n(ptr, val, mo)
 #endif
 

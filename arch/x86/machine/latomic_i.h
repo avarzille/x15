@@ -22,7 +22,7 @@
 #ifndef __LP64__
 
 /*
- *On i386, we need a different implementation for 64-bit
+ * On i386, we need a different implementation for 64-bit
  * local atomics, using the 'cmpxchg8b' instruction. For every
  * macro, we need to dispatch based on the type.
  */
@@ -164,18 +164,18 @@ MACRO_BEGIN                                                       \
         ___tmp = *(ptr);                                          \
         ___or_ret = latomic_cas_n(ptr, ___tmp, ___tmp | (val));   \
     } while (___tmp != ___or_ret);                                \
-    ___ret;                                                       \
+    ___or_ret;                                                    \
 MACRO_END
 
-#define latomic_fetch_xor_n(ptr, val)                             \
-MACRO_BEGIN                                                       \
-    typeof(*(ptr)) ___or_ret, ___tmp;                             \
-                                                                  \
-    do {                                                          \
-        ___tmp = *(ptr);                                          \
-        ___or_ret = latomic_cas_n(ptr, ___tmp, ___tmp ^ (val));   \
-    } while (___tmp != ___or_ret);                                \
-    ___ret;                                                       \
+#define latomic_fetch_xor_n(ptr, val)                              \
+MACRO_BEGIN                                                        \
+    typeof(*(ptr)) ___xor_ret, ___tmp;                             \
+                                                                   \
+    do {                                                           \
+        ___tmp = *(ptr);                                           \
+        ___xor_ret = latomic_cas_n(ptr, ___tmp, ___tmp ^ (val));   \
+    } while (___tmp != ___or_ret);                                 \
+    ___xor_ret;                                                    \
 MACRO_END
 
 #endif /* _X86_LATOMIC_I_H */

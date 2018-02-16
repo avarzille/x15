@@ -33,14 +33,14 @@
 #define LATOMIC_ACQ_REL   3
 #define LATOMIC_SEQ_CST   4
 
-#define latomic_load(ptr, mo)                                          \
-MACRO_BEGIN                                                            \
-    typeof(*(ptr)) ___ret;                                             \
-                                                                       \
-    latomic_barrier_entry(mo);                                         \
-    ___ret = latomic_choose_expr(ptr, latomic_load_64(ptr), *(ptr));   \
-    latomic_barrier_exit(mo);                                          \
-    ___ret;                                                            \
+#define latomic_load(ptr, mo)                                                \
+MACRO_BEGIN                                                                  \
+    typeof(latomic_choose_expr(ptr, latomic_load_64(ptr), *(ptr))) ___ret;   \
+                                                                             \
+    latomic_barrier_entry(mo);                                               \
+    ___ret = latomic_choose_expr(ptr, latomic_load_64(ptr), *(ptr));         \
+    latomic_barrier_exit(mo);                                                \
+    ___ret;                                                                  \
 MACRO_END
 
 #define latomic_store(ptr, val, mo)                                         \

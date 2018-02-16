@@ -26,6 +26,46 @@
 #error "don't include <machine/atomic.h> directly, use <kern/atomic.h> instead"
 #endif
 
+#ifndef CONFIG_SMP
+
+/*
+ * If there's a single CPU, we can use local atomics, which are faster.
+ */
+
+#include <machine/latomic.h>
+
+#define ATOMIC_RELAXED   LATOMIC_RELAXED
+#define ATOMIC_CONSUME   LATOMIC_RELAXED
+#define ATOMIC_ACQUIRE   LATOMIC_ACQUIRE
+#define ATOMIC_RELEASE   LATOMIC_RELEASE
+#define ATOMIC_ACQ_REL   LATOMIC_ACQ_REL
+#define ATOMIC_SEQ_CST   LATOMIC_SEQ_CST
+
+#define atomic_fetch_add   latomic_fetch_add
+#define atomic_fetch_sub   latomic_fetch_sub
+#define atomic_fetch_and   latomic_fetch_and
+#define atomic_fetch_or    latomic_fetch_or
+#define atomic_fetch_xor   latomic_fetch_xor
+
+#define atomic_add   (void)latomic_fetch_add
+#define atomic_sub   (void)latomic_fetch_sub
+#define atomic_and   (void)latomic_fetch_and
+#define atomic_or    (void)latomic_fetch_or
+#define atomic_xor   (void)latomic_fetch_xor
+
+#define atomic_swap   latomic_swap
+#define atomic_cas    latomic_cas
+
+#define atomic_load   latomic_load
+#define atomic_store  latomic_store
+
+#define atomic_fence_acquire()   (void)0
+#define atomic_fence_release()   (void)0
+#define atomic_fence_acq_rel()   (void)0
+#define atomic_fence_seq_cst()   (void)0
+
+#else /* CONFIG_SMP */
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -80,13 +120,9 @@ MACRO_BEGIN                                                                 \
     }                                                                       \
 MACRO_END
 
-/*
- * Report that load and store are architecture-specific.
- */
-#define ATOMIC_ARCH_SPECIFIC_LOAD
-#define ATOMIC_ARCH_SPECIFIC_STORE
-
 #endif /* __LP64__ */
+
+#endif /* CONFIG_SMP */
 
 /*
  * XXX Clang seems to have trouble with 64-bits operations on 32-bits
