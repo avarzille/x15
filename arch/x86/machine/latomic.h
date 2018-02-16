@@ -72,9 +72,11 @@ MACRO_BEGIN                                                       \
     ___rval;                                                      \
 MACRO_END
 
-#define latomic_choose_expr(ptr, expr1, expr2)                   \
-    (typeof(*(ptr)))__builtin_choose_expr(sizeof(*(ptr)) == 8,   \
-                                          expr1, expr2)
+#define latomic_choose_expr(ptr, expr1, expr2)   \
+_Generic((ptr),                                  \
+         uint64_t*: expr1,                       \
+         int64_t*:  expr1,                       \
+         default: expr2)
 
 #else /* __LP64__ */
 
