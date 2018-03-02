@@ -40,7 +40,7 @@ MACRO_BEGIN                               \
     latomic_barrier_entry(mo);            \
     ___ret = latomic_load_n(ptr);         \
     latomic_barrier_exit(mo);             \
-    ___ret;                               \
+    (typeof(*(ptr)))___ret;               \
 MACRO_END
 
 #define latomic_store(ptr, val, mo)                                          \

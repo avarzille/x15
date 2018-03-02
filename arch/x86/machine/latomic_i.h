@@ -133,7 +133,7 @@ MACRO_END
  */
 #define latomic_load_n(ptr)                        \
   latomic_choose_expr(ptr, latomic_load_64(ptr),   \
-                      __atomic_load_n((ptr), __ATOMIC_RELAXED))
+                      (uintptr_t)__atomic_load_n((ptr), __ATOMIC_RELAXED))
 
 #define latomic_swap_n(ptr, val)             \
 MACRO_BEGIN                                  \
@@ -155,14 +155,14 @@ MACRO_BEGIN                                              \
     ___cas_ret;                                          \
 MACRO_END
 
-#define latomic_fetch_add_n(ptr, val)               \
-MACRO_BEGIN                                         \
-   typeof(*(ptr)) ___add_ret;                       \
-                                                    \
-   asm volatile("xadd %0, %1"                       \
-                        : "=r" (___add_ret)         \
-                        : "m" (*ptr), "0" (val));   \
-   ___add_ret;                                      \
+#define latomic_fetch_add_n(ptr, val)       \
+MACRO_BEGIN                                 \
+   typeof(*(ptr)) ___add_ret;               \
+                                            \
+   asm volatile("xadd %0, %1"               \
+                : "=r" (___add_ret)         \
+                : "m" (*ptr), "0" (val));   \
+   ___add_ret;                              \
 MACRO_END
 
 #define latomic_fetch_and_n(ptr, val)                              \
