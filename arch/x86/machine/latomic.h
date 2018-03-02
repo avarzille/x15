@@ -27,29 +27,29 @@
 #include <kern/macros.h>
 #include <machine/latomic_i.h>
 
-#define LATOMIC_RELAXED   0
-#define LATOMIC_ACQUIRE   1
-#define LATOMIC_RELEASE   2
-#define LATOMIC_ACQ_REL   3
-#define LATOMIC_SEQ_CST   4
+#define LATOMIC_RELAXED   __ATOMIC_RELAXED
+#define LATOMIC_ACQUIRE   __ATOMIC_ACQUIRE
+#define LATOMIC_RELEASE   __ATOMIC_RELEASE
+#define LATOMIC_ACQ_REL   __ATOMIC_ACQ_REL
+#define LATOMIC_SEQ_CST   __ATOMIC_SEQ_CST
 
-#define latomic_load(ptr, mo)                                                \
-MACRO_BEGIN                                                                  \
-    typeof(latomic_choose_expr(ptr, latomic_load_64(ptr), *(ptr))) ___ret;   \
-                                                                             \
-    latomic_barrier_entry(mo);                                               \
-    ___ret = latomic_choose_expr(ptr, latomic_load_64(ptr), *(ptr));         \
-    latomic_barrier_exit(mo);                                                \
-    ___ret;                                                                  \
+#define latomic_load(ptr, mo)             \
+MACRO_BEGIN                               \
+    typeof(latomic_load_n(ptr)) ___ret;   \
+                                          \
+    latomic_barrier_entry(mo);            \
+    ___ret = latomic_load_n(ptr);         \
+    latomic_barrier_exit(mo);             \
+    ___ret;                               \
 MACRO_END
 
-#define latomic_store(ptr, val, mo)                                         \
-MACRO_BEGIN                                                                 \
-    latomic_barrier_entry(mo);                                              \
-    latomic_choose_expr(ptr, latomic_swap_64(ptr, val), *(ptr) = (val));    \
-    latomic_barrier_exit(mo);                                               \
-    (void)0;                                                                \
-MACRO_END                                                                   \
+#define latomic_store(ptr, val, mo)                                          \
+MACRO_BEGIN                                                                  \
+    latomic_barrier_entry(mo);                                               \
+    latomic_choose_expr(ptr, latomic_store_64(ptr, val), *(ptr) = (val));    \
+    latomic_barrier_exit(mo);                                                \
+    (void)0;                                                                 \
+MACRO_END                                                                    \
 
 #define latomic_swap(ptr, val, mo)                            \
 MACRO_BEGIN                                                   \

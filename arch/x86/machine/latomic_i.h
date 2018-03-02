@@ -22,54 +22,70 @@
 #ifndef __LP64__
 
 /*
- * On i386, we need a different implementation for 64-bit
+ * On i386, a different implementation is needed for 64-bit
  * local atomics, using the 'cmpxchg8b' instruction. For every
- * macro, we need to dispatch based on the type.
+ * macro, the type of the pointer is used to dispatch.
  */
 
-#define latomic_cas_64(ptr, oval, nval)                      \
-MACRO_BEGIN                                                  \
-    uint64_t ___oval, ___nval;                               \
-                                                             \
-    ___oval = (oval);                                        \
-    ___nval = (nval);                                        \
-    __asm__ __volatile__("cmpxchg8b %0\n\t"                  \
-                         : "+m" (*(ptr)), "+A" (___oval)     \
-                         : "b" ((uint32_t)___nval),          \
-                           "c" ((uint32_t)(___nval >> 32))   \
-                         : "cc");                            \
-    ___oval;                                                 \
+#define latomic_cas_64(ptr, oval, nval)                 \
+MACRO_BEGIN                                             \
+    uint64_t ___oval, ___nval;                          \
+    uint64_t *___cas_ptr;                               \
+                                                        \
+    ___oval = (uint64_t)(oval);                         \
+    ___nval = (uint64_t)(nval);                         \
+    ___cas_ptr = (uint64_t *)(ptr);                     \
+    asm volatile("cmpxchg8b %0"                         \
+                 : "+m" (*___cas_ptr), "+A" (___oval)   \
+                 : "b" ((uint32_t)___nval),             \
+                   "c" ((uint32_t)(___nval >> 32))      \
+                 : "cc");                               \
+    ___oval;                                            \
 MACRO_END
 
-#define latomic_load_64(ptr)   latomic_cas_64(ptr, 0, 0)
+#define latomic_load_64(ptr)   latomic_cas_64((void *)(ptr), 0, 0)
 
 /*
  * XXX: Note that the following 2 macros use a non-atomic access.
- * This should be fine, however, since we loop until the CAS succeeds,
- * at which point we know there were no data races.
+ * This should be fine, however, since a loop is performed until
+ * the CAS succeeds, at which point it's certain there were no data races.
  */
 
-#define latomic_swap_64(ptr, val)                                 \
-MACRO_BEGIN                                                       \
-    uint64_t ___rval, ___val;                                     \
-                                                                  \
-    ___val = (val);                                               \
-    do {                                                          \
-        ___rval = *(ptr);                                         \
-    } while (latomic_cas_64 (ptr, ___rval, ___val) != ___rval);   \
-    ___rval;                                                      \
+#define latomic_swap_64(ptr, val)                                    \
+MACRO_BEGIN                                                          \
+    uint64_t ___val, ___rval;                                        \
+    uint64_t *___ptr;                                                \
+                                                                     \
+    ___ptr = (uint64_t *)(ptr);                                      \
+    ___val = (uint64_t)(val);                                        \
+    do {                                                             \
+        ___rval = *___ptr;                                           \
+    } while (latomic_cas_64 (___ptr, ___rval, ___val) != ___rval);   \
+    ___rval;                                                         \
 MACRO_END
 
-#define latomic_cas_loop_64(ptr, op, val)                         \
-MACRO_BEGIN                                                       \
-    uint64_t ___rval, ___val;                                     \
-                                                                  \
-    do {                                                          \
-        ___rval = *(ptr);                                         \
-        ___val = ___rval op (val);                                \
-    } while (latomic_cas_64 (ptr, ___rval, ___val) != ___rval);   \
-    ___rval;                                                      \
+#define latomic_cas_loop_64(ptr, op, val)                           \
+MACRO_BEGIN                                                         \
+    uint64_t ___val, ___rval;                                       \
+    uint64_t *___ptr;                                               \
+                                                                    \
+    ___ptr = (uint64_t *)(ptr);                                     \
+                                                                    \
+    do {                                                            \
+        ___rval = *___ptr;                                          \
+        ___val = ___rval op (val);                                  \
+    } while (latomic_cas_64 (___ptr, ___rval, ___val) != ___rval);  \
+    ___rval;                                                        \
 MACRO_END
+
+/*
+ * XXX: Gross hack to shut up annoying warnings from the compiler.
+ */
+#define latomic_store_64(ptr, val)                             \
+MACRO_BEGIN                                                    \
+    latomic_swap_64(ptr,                                       \
+        ((union { typeof(val) v; uint64_t u; }) { val }).u);   \
+MACRO_END                                                      \
 
 /*
  * The first expression refers to a 64-bit value. The second
@@ -84,14 +100,14 @@ _Generic((ptr),                                  \
 #else /* __LP64__ */
 
 /*
- * On AMD64, we always use the generic.
+ * On AMD64, always use the generic.
  */
 #define latomic_choose_expr(ptr, expr1, expr2)   (typeof(*(ptr)))(expr2)
 
 #endif /* __LP64__ */
 
 /*
- *For local atomics, memory ordering is implemented by using
+ * For local atomics, memory ordering is implemented by using
  * the 'barrier' macro on entry, exit, both, or neither, according
  * to the specified ordering.
  */
@@ -115,31 +131,35 @@ MACRO_END
  * operations are meant to be processor-local, and the 'memory' constraint
  * is too, since the barriers mentioned above will handle that.
  */
-#define latomic_swap_n(ptr, val)                              \
-MACRO_BEGIN                                                   \
-    typeof(*(ptr)) ___swap_ret;                               \
-                                                              \
-    __asm__ __volatile__("xchg %0, %1"                        \
-                          : "=r" (___swap_ret)                \
-                          : "m" (*ptr), "0" (val));           \
-    ___swap_ret;                                              \
+#define latomic_load_n(ptr)                        \
+  latomic_choose_expr(ptr, latomic_load_64(ptr),   \
+                      __atomic_load_n((ptr), __ATOMIC_RELAXED))
+
+#define latomic_swap_n(ptr, val)             \
+MACRO_BEGIN                                  \
+    typeof(*(ptr)) ___swap_ret;              \
+                                             \
+    asm volatile("xchg %0, %1"               \
+                 : "=r" (___swap_ret)        \
+                 : "m" (*ptr), "0" (val));   \
+    ___swap_ret;                             \
 MACRO_END
 
-#define latomic_cas_n(ptr, exp, val)                             \
-MACRO_BEGIN                                                      \
-    typeof(*(ptr)) ___cas_ret;                                   \
-                                                                 \
-    __asm__ __volatile__ ("cmpxchg %2, %1"                       \
-                          : "=a" (___cas_ret), "=m" (*ptr)       \
-                          : "r" (val), "m" (*ptr), "0" (exp));   \
-    ___cas_ret;                                                  \
+#define latomic_cas_n(ptr, exp, val)                     \
+MACRO_BEGIN                                              \
+    typeof(*(ptr)) ___cas_ret;                           \
+                                                         \
+    asm volatile ("cmpxchg %2, %1"                       \
+                  : "=a" (___cas_ret), "=m" (*ptr)       \
+                  : "r" (val), "m" (*ptr), "0" (exp));   \
+    ___cas_ret;                                          \
 MACRO_END
 
 #define latomic_fetch_add_n(ptr, val)               \
 MACRO_BEGIN                                         \
    typeof(*(ptr)) ___add_ret;                       \
                                                     \
-   __asm__ __volatile__("xadd %0, %1"               \
+   asm volatile("xadd %0, %1"                       \
                         : "=r" (___add_ret)         \
                         : "m" (*ptr), "0" (val));   \
    ___add_ret;                                      \
