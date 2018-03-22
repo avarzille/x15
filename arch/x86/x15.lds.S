@@ -23,6 +23,7 @@ PHDRS
     text    PT_LOAD FLAGS(5);
     rodata  PT_LOAD FLAGS(4);
     data    PT_LOAD FLAGS(6);
+    xsymbols PT_LOAD FLAGS(6);
 }
 
 SECTIONS
@@ -94,6 +95,15 @@ SECTIONS
     . = ALIGN(PAGE_SIZE);
     _end = .;
 
+    . += PAGE_SIZE;
+    .xsymbols . : {
+        *(.xsymbols)
+    } : xsymbols
+
+    /*
+     * XXX A global offset section is created because of linking with libgcc.
+     * Is it safe to discard it ?
+     */
     /DISCARD/ : {
         *(.eh_frame*)
         *(.note*)

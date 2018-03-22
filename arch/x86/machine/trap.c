@@ -28,12 +28,12 @@
 #include <kern/init.h>
 #include <kern/macros.h>
 #include <kern/spinlock.h>
+#include <kern/strace.h>
 #include <kern/thread.h>
 #include <machine/cpu.h>
 #include <machine/lapic.h>
 #include <machine/pic.h>
 #include <machine/pmap.h>
-#include <machine/strace.h>
 #include <machine/trap.h>
 
 struct trap_cpu_data {

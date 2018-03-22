@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2012 Richard Braun.
+ * Copyright (c) 2012-2018 Richard Braun.
+ * Copyright (c) 2018 Agustina Arzille.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,22 +14,24 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- *
- * Stack tracing.
- *
- * TODO Make it possible to debug without the frame pointer.
  */
 
-#ifndef _X86_STRACE_H
-#define _X86_STRACE_H
+#ifndef _KERN_SYMBOLS_H
+#define _KERN_SYMBOLS_H
 
+#include <stdint.h>
 #include <kern/macros.h>
 
-#define strace_get_frame_info(ip, bp)   \
-MACRO_BEGIN   \
-    asm volatile("1: mov $1b, %0" : "=r" (*(ip)));   \
-    *(bp) = (uintptr_t)__builtin_frame_address(0);   \
-MACRO_END
+struct symbol {
+    uintptr_t addr;
+    uintptr_t size;
+    int type;
+    const char *name;
+};
 
-#endif /* _X86_STRACE_H */
+#define __symtab __section(".xsymbols")
+
+extern int symbol_table_size __symtab;
+extern struct symbol symbol_table[] __symtab;
+
+#endif /* _KERN_SYMBOLS_H */

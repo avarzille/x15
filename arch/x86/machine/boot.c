@@ -56,6 +56,7 @@
 #include <kern/log.h>
 #include <kern/macros.h>
 #include <kern/panic.h>
+#include <kern/strace.h>
 #include <kern/thread.h>
 #include <machine/acpi.h>
 #include <machine/atcons.h>
@@ -67,7 +68,6 @@
 #include <machine/multiboot.h>
 #include <machine/page.h>
 #include <machine/pmap.h>
-#include <machine/strace.h>
 #include <machine/uart.h>
 #include <vm/vm_kmem.h>
 
@@ -492,7 +492,6 @@ void __init
 boot_main(void)
 {
     arg_set_cmdline(boot_tmp_cmdline);
-    strace_set_mbi(&boot_raw_mbi);
     kernel_main();
 
     /* Never reached */

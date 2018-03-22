@@ -28,7 +28,9 @@ x15_SOURCES-y += \
         kern/sleepq.c \
         kern/spinlock.c \
         kern/sref.c \
+        kern/strace.c \
         kern/string.c \
+        kern/symbols.c \
         kern/syscnt.c \
         kern/task.c \
         kern/thread.c \

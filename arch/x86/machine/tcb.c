@@ -18,10 +18,10 @@
 #include <stdnoreturn.h>
 
 #include <kern/init.h>
+#include <kern/strace.h>
 #include <kern/thread.h>
 #include <machine/cpu.h>
 #include <machine/pmap.h>
-#include <machine/strace.h>
 #include <machine/tcb.h>
 
 noreturn void tcb_context_load(struct tcb *tcb);

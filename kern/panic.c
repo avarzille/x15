@@ -21,8 +21,8 @@
 #include <kern/atomic.h>
 #include <kern/init.h>
 #include <kern/panic.h>
+#include <kern/strace.h>
 #include <machine/cpu.h>
-#include <machine/strace.h>
 
 static unsigned int panic_done;
 
@@ -64,5 +64,4 @@ panic_setup(void)
 
 INIT_OP_DEFINE(panic_setup,
                INIT_OP_DEP(cpu_setup, true),
-               INIT_OP_DEP(printf_setup, true),
-               INIT_OP_DEP(strace_setup, true));
+               INIT_OP_DEP(printf_setup, true));

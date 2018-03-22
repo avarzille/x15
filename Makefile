@@ -4,7 +4,7 @@ MAKEFLAGS += -rR
 MAKEFLAGS += --no-print-directory
 
 .PHONY: all
-all: x15 docs
+all: x15_image x15 docs
 
 VERSION = 0.1
 export VERSION
@@ -331,8 +331,15 @@ x15_DEPS := $(x15_LDS) .x15.sorted_init_ops
 %.lds: %.lds.S include/generated/autoconf.h
 	$(xbuild_gen_linker_script)
 
-x15: $(x15_OBJECTS) $(x15_DEPS)
+x15_image: $(x15_OBJECTS) $(x15_DEPS)
 	$(call xbuild_link,$(x15_OBJECTS))
+
+x15: x15_image
+	$(shell nm -S -n x15_image | tools/gen_symtab.py > kern/symbol_table.c)
+	$(call xbuild_action,CC,kern/symbols.o)   \
+        $(COMPILE) -MMD -MP -c kern/symbol_table.c -o kern/symbols.o
+	$(call xbuild_link,$(x15_OBJECTS))
+	$(shell rm x15_image)
 
 .PHONY: install-x15
 install-x15:
