@@ -339,7 +339,7 @@ x15: x15_image
 	$(call xbuild_action,CC,kern/symbols.o)   \
         $(COMPILE) -MMD -MP -c kern/symbol_table.c -o kern/symbols.o
 	$(call xbuild_link,$(x15_OBJECTS))
-	$(shell rm x15_image)
+	$(Q)rm -f x15_image kern/symbol_table.c
 
 .PHONY: install-x15
 install-x15:
