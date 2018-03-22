@@ -64,7 +64,7 @@ strace_show_one(unsigned int index, uintptr_t ip)
 }
 
 void
-strace_show(unsigned long ip, unsigned long bp)
+strace_show(uintptr_t ip, uintptr_t bp)
 {
     phys_addr_t pa;
     void **frame;
