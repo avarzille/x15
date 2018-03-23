@@ -7,7 +7,7 @@ import sys
 for line in sys.stdin:
   line = line.strip ()
   parts = line.split (' ')
-  if len (parts) != 4:
+  if len (parts) != 4 or parts[3].startswith ("__func__."):
     continue
 
   symtab_elems.append ("{ 0x%sul, 0x%s, '%s', \"%s\" }" % tuple(parts))

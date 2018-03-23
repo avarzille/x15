@@ -109,6 +109,8 @@ endef
 ARCH ?= $(shell uname -m | sed -e s/i.86/x86/ -e s/x86_64/x86/ )
 export ARCH
 
+NM ?= nm
+
 SRCDIR := $(realpath $(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
 VPATH := $(SRCDIR)
 export SRCDIR VPATH
@@ -335,7 +337,7 @@ x15_image: $(x15_OBJECTS) $(x15_DEPS)
 	$(call xbuild_link,$(x15_OBJECTS))
 
 x15: x15_image
-	$(shell nm -S -n x15_image | tools/gen_symtab.py > kern/symbol_table.c)
+	$(shell $(NM) -S -n x15_image | tools/gen_symtab.py > kern/symbol_table.c)
 	$(call xbuild_action,CC,kern/symbols.o)   \
         $(COMPILE) -MMD -MP -c kern/symbol_table.c -o kern/symbols.o
 	$(call xbuild_link,$(x15_OBJECTS))
