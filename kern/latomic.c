@@ -18,7 +18,7 @@
  */
 
 #include <kern/latomic.h>
-#include <kern/thread.h>
+#include <machine/cpu.h>
 
 #define latomic_get(ptr, size)   *(const uint##size##_t *)ptr
 
@@ -27,7 +27,7 @@ uintptr_t latomic_load_sized(const void *ptr, size_t size)
     uintptr_t ret;
     unsigned long flags;
 
-    thread_preempt_disable_intr_save(&flags);
+    cpu_intr_save(&flags);
 
     switch (size) {
     case sizeof(uint8_t):
@@ -44,7 +44,7 @@ uintptr_t latomic_load_sized(const void *ptr, size_t size)
         break;
     }
 
-    thread_preempt_enable_intr_restore(flags);
+    cpu_intr_restore(flags);
     return ret;
 }
 
@@ -57,7 +57,7 @@ void latomic_store_sized(void *ptr, const void *val, size_t size)
 {
     unsigned long flags;
 
-    thread_preempt_disable_intr_save(&flags);
+    cpu_intr_save(&flags);
 
     switch (size) {
     case sizeof(uint8_t):
@@ -74,7 +74,7 @@ void latomic_store_sized(void *ptr, const void *val, size_t size)
         break;
     }
 
-    thread_preempt_enable_intr_restore(flags);
+    cpu_intr_restore(flags);
 }
 
 uintptr_t latomic_swap_sized(void *ptr, const void *val, size_t size)
@@ -82,7 +82,7 @@ uintptr_t latomic_swap_sized(void *ptr, const void *val, size_t size)
     uintptr_t ret;
     unsigned long flags;
 
-    thread_preempt_disable_intr_save(&flags);
+    cpu_intr_save(&flags);
 
     switch (size) {
     case sizeof(uint8_t):
@@ -103,7 +103,7 @@ uintptr_t latomic_swap_sized(void *ptr, const void *val, size_t size)
         break;
     }
 
-    thread_preempt_enable_intr_restore(flags);
+    cpu_intr_restore(flags);
     return ret;
 }
 
@@ -113,7 +113,7 @@ uintptr_t latomic_cas_sized(void *ptr, const void *oval,
     uintptr_t ret;
     unsigned long flags;
 
-    thread_preempt_disable_intr_save(&flags);
+    cpu_intr_save(&flags);
 
     switch (size) {
     case sizeof(uint8_t):
@@ -142,7 +142,7 @@ uintptr_t latomic_cas_sized(void *ptr, const void *oval,
         break;
     }
 
-    thread_preempt_enable_intr_restore(flags);
+    cpu_intr_restore(flags);
     return ret;
 }
 
@@ -151,7 +151,7 @@ uintptr_t latomic_add_sized(void *ptr, const void *val, size_t size)
     uintptr_t ret;
     unsigned long flags;
 
-    thread_preempt_disable_intr_save(&flags);
+    cpu_intr_save(&flags);
 
     switch (size) {
     case sizeof(uint8_t):
@@ -172,7 +172,7 @@ uintptr_t latomic_add_sized(void *ptr, const void *val, size_t size)
         break;
     }
 
-    thread_preempt_enable_intr_restore(flags);
+    cpu_intr_restore(flags);
     return ret;
 }
 
@@ -181,7 +181,7 @@ uintptr_t latomic_and_sized(void *ptr, const void *val, size_t size)
     uintptr_t ret;
     unsigned long flags;
 
-    thread_preempt_disable_intr_save(&flags);
+    cpu_intr_save(&flags);
 
     switch (size) {
     case sizeof(uint8_t):
@@ -202,7 +202,7 @@ uintptr_t latomic_and_sized(void *ptr, const void *val, size_t size)
         break;
     }
 
-    thread_preempt_enable_intr_restore(flags);
+    cpu_intr_restore(flags);
     return ret;
 }
 
@@ -211,7 +211,7 @@ uintptr_t latomic_or_sized(void *ptr, const void *val, size_t size)
     uintptr_t ret;
     unsigned long flags;
 
-    thread_preempt_disable_intr_save(&flags);
+    cpu_intr_save(&flags);
 
     switch (size) {
     case sizeof(uint8_t):
@@ -232,7 +232,7 @@ uintptr_t latomic_or_sized(void *ptr, const void *val, size_t size)
         break;
     }
 
-    thread_preempt_enable_intr_restore(flags);
+    cpu_intr_restore(flags);
     return ret;
 }
 
@@ -241,7 +241,7 @@ uintptr_t latomic_xor_sized(void *ptr, const void *val, size_t size)
     uintptr_t ret;
     unsigned long flags;
 
-    thread_preempt_disable_intr_save(&flags);
+    cpu_intr_save(&flags);
 
     switch (size) {
     case sizeof(uint8_t):
@@ -262,7 +262,7 @@ uintptr_t latomic_xor_sized(void *ptr, const void *val, size_t size)
         break;
     }
 
-    thread_preempt_enable_intr_restore(flags);
+    cpu_intr_restore(flags);
     return ret;
 }
 
