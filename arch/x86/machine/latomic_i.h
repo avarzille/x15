@@ -29,18 +29,18 @@
 
 #define latomic_cas_64(ptr, oval, nval)                 \
 MACRO_BEGIN                                             \
-    uint64_t ___oval, ___nval;                          \
-    uint64_t *___cas_ptr;                               \
+    uint64_t oval___, nval___;                          \
+    uint64_t *cas_ptr___;                               \
                                                         \
-    ___oval = (uint64_t)(oval);                         \
-    ___nval = (uint64_t)(nval);                         \
-    ___cas_ptr = (uint64_t *)(ptr);                     \
+    oval___ = (uint64_t)(oval);                         \
+    nval___ = (uint64_t)(nval);                         \
+    cas_ptr___ = (uint64_t *)(ptr);                     \
     asm volatile("cmpxchg8b %0"                         \
-                 : "+m" (*___cas_ptr), "+A" (___oval)   \
-                 : "b" ((uint32_t)___nval),             \
-                   "c" ((uint32_t)(___nval >> 32))      \
+                 : "+m" (*cas_ptr___), "+A" (oval___)   \
+                 : "b" ((uint32_t)nval___),             \
+                   "c" ((uint32_t)(nval___ >> 32))      \
                  : "cc");                               \
-    ___oval;                                            \
+    oval___;                                            \
 MACRO_END
 
 #define latomic_load_64(ptr)   latomic_cas_64((void *)(ptr), 0, 0)
@@ -53,29 +53,29 @@ MACRO_END
 
 #define latomic_swap_64(ptr, val)                                    \
 MACRO_BEGIN                                                          \
-    uint64_t ___val, ___rval;                                        \
-    uint64_t *___ptr;                                                \
+    uint64_t val___, rval___;                                        \
+    uint64_t *ptr___;                                                \
                                                                      \
-    ___ptr = (uint64_t *)(ptr);                                      \
-    ___val = (uint64_t)(val);                                        \
+    ptr___ = (uint64_t *)(ptr);                                      \
+    val___ = (uint64_t)(val);                                        \
     do {                                                             \
-        ___rval = *___ptr;                                           \
-    } while (latomic_cas_64 (___ptr, ___rval, ___val) != ___rval);   \
-    ___rval;                                                         \
+        rval___ = *ptr___;                                           \
+    } while (latomic_cas_64 (ptr___, rval___, val___) != rval___);   \
+    rval___;                                                         \
 MACRO_END
 
 #define latomic_cas_loop_64(ptr, op, val)                           \
 MACRO_BEGIN                                                         \
-    uint64_t ___val, ___rval;                                       \
-    uint64_t *___ptr;                                               \
+    uint64_t val___, rval___;                                       \
+    uint64_t *ptr___;                                               \
                                                                     \
-    ___ptr = (uint64_t *)(ptr);                                     \
+    ptr___ = (uint64_t *)(ptr);                                     \
                                                                     \
     do {                                                            \
-        ___rval = *___ptr;                                          \
-        ___val = ___rval op (val);                                  \
-    } while (latomic_cas_64 (___ptr, ___rval, ___val) != ___rval);  \
-    ___rval;                                                        \
+        rval___ = *ptr___;                                          \
+        val___ = rval___ op (val);                                  \
+    } while (latomic_cas_64 (ptr___, rval___, val___) != rval___);  \
+    rval___;                                                        \
 MACRO_END
 
 /*
@@ -137,65 +137,65 @@ MACRO_END
 
 #define latomic_swap_n(ptr, val)             \
 MACRO_BEGIN                                  \
-    typeof(*(ptr)) ___swap_ret;              \
+    typeof(*(ptr)) swap_ret___;              \
                                              \
     asm volatile("xchg %0, %1"               \
-                 : "=r" (___swap_ret)        \
+                 : "=r" (swap_ret___)        \
                  : "m" (*ptr), "0" (val));   \
-    ___swap_ret;                             \
+    swap_ret___;                             \
 MACRO_END
 
 #define latomic_cas_n(ptr, exp, val)                     \
 MACRO_BEGIN                                              \
-    typeof(*(ptr)) ___cas_ret;                           \
+    typeof(*(ptr)) cas_ret___;                           \
                                                          \
     asm volatile ("cmpxchg %2, %1"                       \
-                  : "=a" (___cas_ret), "=m" (*ptr)       \
+                  : "=a" (cas_ret___), "=m" (*ptr)       \
                   : "r" (val), "m" (*ptr), "0" (exp));   \
-    ___cas_ret;                                          \
+    cas_ret___;                                          \
 MACRO_END
 
 #define latomic_fetch_add_n(ptr, val)       \
 MACRO_BEGIN                                 \
-   typeof(*(ptr)) ___add_ret;               \
+   typeof(*(ptr)) add_ret___;               \
                                             \
    asm volatile("xadd %0, %1"               \
-                : "=r" (___add_ret)         \
+                : "=r" (add_ret___)         \
                 : "m" (*ptr), "0" (val));   \
-   ___add_ret;                              \
+   add_ret___;                              \
 MACRO_END
 
 #define latomic_fetch_and_n(ptr, val)                              \
 MACRO_BEGIN                                                        \
-    typeof(*(ptr)) ___and_ret, ___tmp;                             \
+    typeof(*(ptr)) and_ret___, tmp___;                             \
                                                                    \
     do {                                                           \
-        ___tmp = *(ptr);                                           \
-        ___and_ret = latomic_cas_n(ptr, ___tmp, ___tmp & (val));   \
-    } while (___tmp != ___and_ret);                                \
-    ___and_ret;                                                    \
+        tmp___ = *(ptr);                                           \
+        and_ret___ = latomic_cas_n(ptr, tmp___, tmp___ & (val));   \
+    } while (tmp___ != and_ret___);                                \
+    and_ret___;                                                    \
 MACRO_END                                                          \
 
 #define latomic_fetch_or_n(ptr, val)                              \
 MACRO_BEGIN                                                       \
-    typeof(*(ptr)) ___or_ret, ___tmp;                             \
+    typeof(*(ptr)) or_ret___, tmp___;                             \
                                                                   \
     do {                                                          \
-        ___tmp = *(ptr);                                          \
-        ___or_ret = latomic_cas_n(ptr, ___tmp, ___tmp | (val));   \
-    } while (___tmp != ___or_ret);                                \
-    ___or_ret;                                                    \
+        tmp___ = *(ptr);                                          \
+        or_ret___ = latomic_cas_n(ptr, tmp___, tmp___ | (val));   \
+    } while (tmp___ != or_ret___);                                \
+    or_ret___;                                                    \
 MACRO_END
 
 #define latomic_fetch_xor_n(ptr, val)                              \
 MACRO_BEGIN                                                        \
-    typeof(*(ptr)) ___xor_ret, ___tmp;                             \
+    typeof(*(ptr)) xor_ret___, tmp___;                             \
                                                                    \
     do {                                                           \
-        ___tmp = *(ptr);                                           \
-        ___xor_ret = latomic_cas_n(ptr, ___tmp, ___tmp ^ (val));   \
-    } while (___tmp != ___or_ret);                                 \
-    ___xor_ret;                                                    \
+        tmp___ = *(ptr);                                           \
+        xor_ret___ = latomic_cas_n(ptr, tmp___, tmp___ ^ (val));   \
+    } while (tmp___ != xor_ret___);                                \
+    xor_ret___;                                                    \
 MACRO_END
 
 #endif /* _X86_LATOMIC_I_H */

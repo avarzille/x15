@@ -52,36 +52,36 @@ uintptr_t latomic_xor_sized(void *ptr, const void *val, size_t size);
 
 #define latomic_store(ptr, val, mo)                      \
 MACRO_BEGIN                                              \
-    typeof(val) ___val;                                  \
+    typeof(val) val___;                                  \
                                                          \
-    ___val = (val);                                      \
-    latomic_store_sized(ptr, &___val, sizeof(___val));   \
+    val___ = (val);                                      \
+    latomic_store_sized(ptr, &val___, sizeof(val___));   \
 MACRO_END
 
 #define latomic_swap(ptr, val, mo)                                      \
 MACRO_BEGIN                                                             \
-    typeof(val) ___val;                                                 \
+    typeof(val) val___;                                                 \
                                                                         \
-    ___val = (val);                                                     \
-    (typeof(*(ptr)))latomic_swap_sized(ptr, &___val, sizeof(___val));   \
+    val___ = (val);                                                     \
+    (typeof(*(ptr)))latomic_swap_sized(ptr, &val___, sizeof(val___));   \
 MACRO_END
 
 #define latomic_cas(ptr, oval, nval, mo)                            \
 MACRO_BEGIN                                                         \
-    typeof(oval) ___oval, ___nval;                                  \
+    typeof(oval) oval___, nval___;                                  \
                                                                     \
-    ___oval = (oval);                                               \
-    ___nval = (nval);                                               \
-    (typeof(*(ptr)))latomic_cas_sized(ptr, &___oval,                \
-                                      &___nval, sizeof(___oval));   \
+    oval___ = (oval);                                               \
+    nval___ = (nval);                                               \
+    (typeof(*(ptr)))latomic_cas_sized(ptr, &oval___,                \
+                                      &nval___, sizeof(oval___));   \
 MACRO_END
 
 #define latomic_fetch_op(ptr, val, op, mo)                                \
 MACRO_BEGIN                                                               \
-    typeof(val) ___val;                                                   \
+    typeof(val) val___;                                                   \
                                                                           \
-    ___val = (val);                                                       \
-    (typeof(*(ptr)))latomic_##op##_sized(ptr, &___val, sizeof(___val));   \
+    val___ = (val);                                                       \
+    (typeof(*(ptr)))latomic_##op##_sized(ptr, &val___, sizeof(val___));   \
 MACRO_END
 
 #define latomic_fetch_add(ptr, val, mo)   latomic_fetch_op(ptr, val, add, mo)
