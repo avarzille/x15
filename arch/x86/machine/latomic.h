@@ -27,12 +27,7 @@
 #include <kern/macros.h>
 #include <machine/latomic_i.h>
 
-#define LATOMIC_RELAXED   __ATOMIC_RELAXED
-#define LATOMIC_ACQUIRE   __ATOMIC_ACQUIRE
-#define LATOMIC_RELEASE   __ATOMIC_RELEASE
-#define LATOMIC_ACQ_REL   __ATOMIC_ACQ_REL
-#define LATOMIC_SEQ_CST   __ATOMIC_SEQ_CST
-
+#undef latomic_load
 #define latomic_load(ptr, mo)             \
 MACRO_BEGIN                               \
     typeof(latomic_load_n(ptr)) ___ret;   \
@@ -43,6 +38,7 @@ MACRO_BEGIN                               \
     (typeof(*(ptr)))___ret;               \
 MACRO_END
 
+#undef latomic_store
 #define latomic_store(ptr, val, mo)                                          \
 MACRO_BEGIN                                                                  \
     latomic_barrier_entry(mo);                                               \
@@ -51,6 +47,7 @@ MACRO_BEGIN                                                                  \
     (void)0;                                                                 \
 MACRO_END                                                                    \
 
+#undef latomic_swap
 #define latomic_swap(ptr, val, mo)                            \
 MACRO_BEGIN                                                   \
     typeof(*(ptr)) ___ret;                                    \
@@ -63,6 +60,7 @@ MACRO_BEGIN                                                   \
     ___ret;                                                   \
 MACRO_END
 
+#undef latomic_cas
 #define latomic_cas(ptr, oval, nval, mo)                            \
 MACRO_BEGIN                                                         \
     typeof(*(ptr)) ___ret;                                          \
@@ -75,6 +73,7 @@ MACRO_BEGIN                                                         \
     ___ret;                                                         \
 MACRO_END
 
+#undef latomic_fetch_add
 #define latomic_fetch_add(ptr, val, mo)                             \
 MACRO_BEGIN                                                         \
    typeof(*(ptr)) ___ret;                                           \
@@ -87,8 +86,7 @@ MACRO_BEGIN                                                         \
    ___ret;                                                          \
 MACRO_END
 
-#define latomic_fetch_sub(ptr, val, mo)   latomic_fetch_add(ptr, -(val), mo)
-
+#undef latomic_fetch_and
 #define latomic_fetch_and(ptr, val, mo)                              \
 MACRO_BEGIN                                                          \
     typeof(*(ptr)) ___ret;                                           \
@@ -101,6 +99,7 @@ MACRO_BEGIN                                                          \
     ___ret;                                                          \
 MACRO_END
 
+#undef latomic_fetch_or
 #define latomic_fetch_or(ptr, val, mo)                               \
 MACRO_BEGIN                                                          \
     typeof(*(ptr)) ___ret;                                           \
@@ -113,6 +112,7 @@ MACRO_BEGIN                                                          \
     ___ret;                                                          \
 MACRO_END
 
+#undef latomic_fetch_xor
 #define latomic_fetch_xor(ptr, val, mo)                              \
 MACRO_BEGIN                                                          \
     typeof(*(ptr)) ___ret;                                           \
@@ -124,5 +124,7 @@ MACRO_BEGIN                                                          \
     latomic_barrier_exit(mo);                                        \
     ___ret;                                                          \
 MACRO_END
+
+#define ATOMICS_USE_LATOMIC
 
 #endif

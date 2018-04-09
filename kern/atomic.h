@@ -27,10 +27,12 @@
 #ifndef CONFIG_SMP
 
 /*
- * If there's a single CPU, use the faster local atomics.
+ * If there's a single CPU, local atomics may be faster.
  */
 
-#include <machine/latomic.h>
+#include <kern/latomic.h>
+
+#ifdef ATOMICS_USE_LATOMIC
 
 #define ATOMIC_RELAXED   LATOMIC_RELAXED
 #define ATOMIC_CONSUME   LATOMIC_RELAXED
@@ -62,7 +64,10 @@
 #define atomic_fence_acq_rel()   barrier()
 #define atomic_fence_seq_cst()   barrier()
 
-#else /* CONFIG_SMP */
+#endif /* ATOMICS_USE_LATOMIC */
+#endif /* CONFIG_SMP */
+
+#ifndef ATOMICS_USE_LATOMIC
 
 #include <stdbool.h>
 
@@ -147,5 +152,7 @@ MACRO_END
 #endif
 
 #define atomic_fence(mo) __atomic_thread_fence(mo)
+
+#endif /* ATOMICS_USE_LATOMIC */
 
 #endif /* KERN_ATOMIC_H */
