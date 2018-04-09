@@ -83,7 +83,6 @@ MACRO_END
 
 #endif /* __LP64__ */
 
-
 /*
  * XXX Clang seems to have trouble with 64-bits operations on 32-bits
  * processors.
