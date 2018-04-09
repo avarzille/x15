@@ -67,7 +67,7 @@
 #endif /* ATOMICS_USE_LATOMIC */
 #endif /* CONFIG_SMP */
 
-#ifndef ATOMICS_USE_LATOMIC
+#if defined(CONFIG_SMP) || !defined(ATOMICS_USE_LATOMIC)
 
 #include <stdbool.h>
 
