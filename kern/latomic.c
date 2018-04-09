@@ -176,36 +176,6 @@ uintptr_t latomic_add_sized(void *ptr, const void *val, size_t size)
     return ret;
 }
 
-uintptr_t latomic_sub_sized(void *ptr, const void *val, size_t size)
-{
-    uintptr_t ret;
-    unsigned long flags;
-
-    thread_preempt_disable_intr_save(&flags);
-
-    switch (size) {
-    case sizeof(uint8_t):
-        ret = latomic_get(ptr, 8);
-        latomic_set_op(ptr, val, 8, -=);
-        break;
-    case sizeof(uint16_t):
-        ret = latomic_get(ptr, 16);
-        latomic_set_op(ptr, val, 16, -=);
-        break;
-    case sizeof(uint32_t):
-        ret = latomic_get(ptr, 32);
-        latomic_set_op(ptr, val, 32, -=);
-        break;
-    default:
-        ret = latomic_get(ptr, 64);
-        latomic_set_op(ptr, val, 64, -=);
-        break;
-    }
-
-    thread_preempt_enable_intr_restore(flags);
-    return ret;
-}
-
 uintptr_t latomic_and_sized(void *ptr, const void *val, size_t size)
 {
     uintptr_t ret;

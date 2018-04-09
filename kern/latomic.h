@@ -41,8 +41,6 @@ uintptr_t latomic_cas_sized(void *ptr, const void *oval,
 
 uintptr_t latomic_add_sized(void *ptr, const void *val, size_t size);
 
-uintptr_t latomic_sub_sized(void *ptr, const void *val, size_t size);
-
 uintptr_t latomic_and_sized(void *ptr, const void *val, size_t size);
 
 uintptr_t latomic_or_sized(void *ptr, const void *val, size_t size);
@@ -86,15 +84,15 @@ MACRO_BEGIN                                                               \
     (typeof(*(ptr)))latomic_##op##_sized(ptr, &___val, sizeof(___val));   \
 MACRO_END
 
-#define latomic_fetch_add(ptr, val, mo)   latomic_fetch_op(ptr, val, +=, mo)
+#define latomic_fetch_add(ptr, val, mo)   latomic_fetch_op(ptr, val, add, mo)
 
 #define latomic_fetch_sub(ptr, val, mo)   latomic_fetch_add(ptr, -(val), mo)
 
-#define latomic_fetch_and(ptr, val, mo)   latomic_fetch_op(ptr, val, &=, mo)
+#define latomic_fetch_and(ptr, val, mo)   latomic_fetch_op(ptr, val, and, mo)
 
-#define latomic_fetch_or(ptr, val, mo)    latomic_fetch_op(ptr, val, |=, mo)
+#define latomic_fetch_or(ptr, val, mo)    latomic_fetch_op(ptr, val, or, mo)
 
-#define latomic_fetch_xor(ptr, val, mo)   latomic_fetch_op(ptr, val, ^=, mo)
+#define latomic_fetch_xor(ptr, val, mo)   latomic_fetch_op(ptr, val, xor, mo)
 
 #define latomic_add   (void)latomic_fetch_add
 
