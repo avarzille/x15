@@ -66,14 +66,14 @@ MACRO_BEGIN                                                             \
     (typeof(*(ptr)))latomic_swap_sized(ptr, &___val, sizeof(___val));   \
 MACRO_END
 
-#define latomic_cas(ptr, oval, nval, mo)                           \
-MACRO_BEGIN                                                        \
-    typeof(oval) ___oval, ___nval;                                 \
-                                                                   \
-    ___oval = (oval);                                              \
-    ___nval = (nval);                                              \
-    (typeof(*(ptr)))latomic_cas_size(ptr, &___oval,                \
-                                     &___nval, sizeof(___oval));   \
+#define latomic_cas(ptr, oval, nval, mo)                            \
+MACRO_BEGIN                                                         \
+    typeof(oval) ___oval, ___nval;                                  \
+                                                                    \
+    ___oval = (oval);                                               \
+    ___nval = (nval);                                               \
+    (typeof(*(ptr)))latomic_cas_sized(ptr, &___oval,                \
+                                      &___nval, sizeof(___oval));   \
 MACRO_END
 
 #define latomic_fetch_op(ptr, val, op, mo)                                \
