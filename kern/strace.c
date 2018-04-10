@@ -56,10 +56,11 @@ strace_show_one(unsigned int index, uintptr_t ip)
     name = strace_lookup(ip, &offset, &size);
 
     if (name == NULL) {
-        printf("#%u [" STRACE_ADDR_FORMAT "]\n", index, ip);
+        printf("#%u [" STRACE_ADDR_FORMAT "]\n", index, (unsigned long)ip);
     } else {
         printf("#%u [" STRACE_ADDR_FORMAT "] %s+%#lx/%#lx\n",
-               index, ip, name, (unsigned long)offset, (unsigned long)size);
+               index, (unsigned long)ip, name,
+               (unsigned long)offset, (unsigned long)size);
     }
 }
 
