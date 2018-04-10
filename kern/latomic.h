@@ -20,9 +20,9 @@
 #ifndef _KERN_LATOMIC_H
 #define _KERN_LATOMIC_H
 
-#include <stdint.h>
-
 #include <kern/macros.h>
+#include <machine/cpu.h>
+#include <machine/latomic.h>
 
 #define LATOMIC_RELAXED   __ATOMIC_RELAXED
 #define LATOMIC_ACQUIRE   __ATOMIC_ACQUIRE
@@ -30,80 +30,111 @@
 #define LATOMIC_ACQ_REL   __ATOMIC_ACQ_REL
 #define LATOMIC_SEQ_CST   __ATOMIC_SEQ_CST
 
-uintptr_t latomic_load_sized(const void *ptr, size_t size);
+#ifndef latomic_load
+#define latomic_load(ptr, mo)     \
+MACRO_BEGIN                       \
+    unsigned long flags___;       \
+    uintptr_t ret___;             \
+                                  \
+    cpu_intr_save(&flags___);     \
+    ret___ = (uintptr_t)*(ptr);   \
+    cpu_intr_restore(flags___);   \
+    (typeof(*ptr))ret___;         \
+MACRO_END
+#endif /* latomic_load */
 
-void latomic_store_sized(void *ptr, const void *val, size_t size);
+#ifndef latomic_store
+#define latomic_store(ptr, val, mo)   \
+MACRO_BEGIN                           \
+    unsigned long flags___;           \
+                                      \
+    cpu_intr_save(&flags___);         \
+    *(ptr) = (val);                   \
+    cpu_intr_restore(flags___);       \
+    (void)0;                          \
+MACRO_END
+#endif /* latomic_store */
 
-uintptr_t latomic_swap_sized(void *ptr, const void *val, size_t size);
+#ifndef latomic_swap
+#define latomic_swap(ptr, val, mo)   \
+MACRO_BEGIN                          \
+    unsigned long flags___;          \
+    typeof(*(ptr)) ret___;           \
+                                     \
+    cpu_intr_save(&flags___);        \
+    ret___ = *(ptr);                 \
+    *(ptr) = (val);                  \
+    cpu_intr_restore(flags___);      \
+    ret___;                          \
+MACRO_END
+#endif /* latomic_swap */
 
-uintptr_t latomic_cas_sized(void *ptr, const void *oval,
-                            const void *nval, size_t size);
+#ifndef latomic_cas
+#define latomic_cas(ptr, oval, nval, mo)   \
+MACRO_BEGIN                                \
+    unsigned long flags___;                \
+    typeof(*(ptr)) ret___;                 \
+                                           \
+    cpu_intr_save(&flags___);              \
+    ret___ = *(ptr);                       \
+    if (ret___ == (oval)) {                \
+        *(ptr) = (nval);                   \
+    }                                      \
+    cpu_intr_restore(flags___);            \
+    ret___;                                \
+MACRO_END
+#endif /* latomic_cas */
 
-uintptr_t latomic_add_sized(void *ptr, const void *val, size_t size);
-
-uintptr_t latomic_and_sized(void *ptr, const void *val, size_t size);
-
-uintptr_t latomic_or_sized(void *ptr, const void *val, size_t size);
-
-uintptr_t latomic_xor_sized(void *ptr, const void *val, size_t size);
-
-#define latomic_load(ptr, mo)   \
-  (typeof(*(ptr)))latomic_load_sized(ptr, sizeof(*(ptr)))
-
-#define latomic_store(ptr, val, mo)                      \
-MACRO_BEGIN                                              \
-    typeof(val) val___;                                  \
-                                                         \
-    val___ = (val);                                      \
-    latomic_store_sized(ptr, &val___, sizeof(val___));   \
+#define latomic_fetch_op(ptr, val, op, mo)   \
+MACRO_BEGIN                                  \
+    unsigned long flags___;                  \
+    typeof(*(ptr)) ret___;                   \
+                                             \
+    cpu_intr_save(&flags___);                \
+    ret___ = *(ptr);                         \
+    *(ptr) op (val);                         \
+    cpu_intr_restore(flags___);              \
+    ret___;                                  \
 MACRO_END
 
-#define latomic_swap(ptr, val, mo)                                      \
-MACRO_BEGIN                                                             \
-    typeof(val) val___;                                                 \
-                                                                        \
-    val___ = (val);                                                     \
-    (typeof(*(ptr)))latomic_swap_sized(ptr, &val___, sizeof(val___));   \
-MACRO_END
+#ifndef latomic_fetch_add
+#define latomic_fetch_add(ptr, val, mo)   latomic_fetch_op(ptr, val, +=, mo)
+#endif /* latomic_fetch_add */
 
-#define latomic_cas(ptr, oval, nval, mo)                            \
-MACRO_BEGIN                                                         \
-    typeof(oval) oval___, nval___;                                  \
-                                                                    \
-    oval___ = (oval);                                               \
-    nval___ = (nval);                                               \
-    (typeof(*(ptr)))latomic_cas_sized(ptr, &oval___,                \
-                                      &nval___, sizeof(oval___));   \
-MACRO_END
-
-#define latomic_fetch_op(ptr, val, op, mo)                                \
-MACRO_BEGIN                                                               \
-    typeof(val) val___;                                                   \
-                                                                          \
-    val___ = (val);                                                       \
-    (typeof(*(ptr)))latomic_##op##_sized(ptr, &val___, sizeof(val___));   \
-MACRO_END
-
-#define latomic_fetch_add(ptr, val, mo)   latomic_fetch_op(ptr, val, add, mo)
-
+#ifndef latomic_fetch_sub
 #define latomic_fetch_sub(ptr, val, mo)   latomic_fetch_add(ptr, -(val), mo)
+#endif /* latomic_fetch_sub */
 
-#define latomic_fetch_and(ptr, val, mo)   latomic_fetch_op(ptr, val, and, mo)
+#ifndef latomic_fetch_and
+#define latomic_fetch_and(ptr, val, mo)   latomic_fetch_op(ptr, val, &=, mo)
+#endif /* latomic_fetch_and */
 
-#define latomic_fetch_or(ptr, val, mo)    latomic_fetch_op(ptr, val, or, mo)
+#ifndef latomic_fetch_or
+#define latomic_fetch_or(ptr, val, mo)    latomic_fetch_op(ptr, val, |=, mo)
+#endif /* latomic_fetch_or */
 
-#define latomic_fetch_xor(ptr, val, mo)   latomic_fetch_op(ptr, val, xor, mo)
+#ifndef latomic_fetch_xor
+#define latomic_fetch_xor(ptr, val, mo)   latomic_fetch_op(ptr, val, ^=, mo)
+#endif /* latomic_fetch_xor */
 
+#ifndef latomic_add
 #define latomic_add   (void)latomic_fetch_add
+#endif /* latomic_add */
 
+#ifndef latomic_sub
 #define latomic_sub   (void)latomic_fetch_sub
+#endif /* latomic_sub */
 
+#ifndef latomic_and
 #define latomic_and   (void)latomic_fetch_and
+#endif /* latomic_and */
 
+#ifndef latomic_or
 #define latomic_or    (void)latomic_fetch_or
+#endif /* latomic_or */
 
+#ifndef latomic_xor
 #define latomic_xor   (void)latomic_fetch_xor
-
-#include <machine/latomic.h>
+#endif /* latomic_xor */
 
 #endif /* _KERN_LATOMIC_H */
