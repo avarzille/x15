@@ -15,14 +15,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
+ *
+ * The local atomics module provides an interface similar in spirit and
+ * purpose to that of regular atomics. The main difference is that local
+ * atomics are meant to be used in a single processor. Thus, the are
+ * "local" to that CPU.
  */
 
-#ifndef _KERN_LATOMIC_H
-#define _KERN_LATOMIC_H
+#ifndef KERN_LATOMIC_H
+#define KERN_LATOMIC_H
 
 #include <kern/macros.h>
 #include <machine/cpu.h>
 #include <machine/latomic.h>
+
+/*
+ * Memory orders for local atomics.
+ * These work like those in the regular atomics module, but are implemented
+ * with simple compiler barriers instead of full memory fences.
+ */
 
 #define LATOMIC_RELAXED   __ATOMIC_RELAXED
 #define LATOMIC_ACQUIRE   __ATOMIC_ACQUIRE
@@ -30,42 +41,43 @@
 #define LATOMIC_ACQ_REL   __ATOMIC_ACQ_REL
 #define LATOMIC_SEQ_CST   __ATOMIC_SEQ_CST
 
+/* Note that in this macro, the declaration and assignment are
+ * in the same line. This is done to avoid errors regarding
+ * assignment to constants when the parameter 'ptr' is const. */
 #ifndef latomic_load
-#define latomic_load(ptr, mo)     \
-MACRO_BEGIN                       \
-    unsigned long flags___;       \
-    uintptr_t ret___;             \
-                                  \
-    cpu_intr_save(&flags___);     \
-    ret___ = (uintptr_t)*(ptr);   \
-    cpu_intr_restore(flags___);   \
-    (typeof(*ptr))ret___;         \
+#define latomic_load(ptr, mo)          \
+MACRO_BEGIN                            \
+    unsigned long flags___;            \
+                                       \
+    cpu_intr_save(&flags___);          \
+    typeof(*(ptr)) ret___ = *(ptr);    \
+    cpu_intr_restore(flags___);        \
+    ret___;                            \
 MACRO_END
 #endif /* latomic_load */
 
 #ifndef latomic_store
-#define latomic_store(ptr, val, mo)   \
-MACRO_BEGIN                           \
-    unsigned long flags___;           \
-                                      \
-    cpu_intr_save(&flags___);         \
-    *(ptr) = (val);                   \
-    cpu_intr_restore(flags___);       \
-    (void)0;                          \
+#define latomic_store(ptr, val, mo)    \
+MACRO_BEGIN                            \
+    unsigned long flags___;            \
+                                       \
+    cpu_intr_save(&flags___);          \
+    *(ptr) = (val);                    \
+    cpu_intr_restore(flags___);        \
 MACRO_END
 #endif /* latomic_store */
 
 #ifndef latomic_swap
-#define latomic_swap(ptr, val, mo)   \
-MACRO_BEGIN                          \
-    unsigned long flags___;          \
-    typeof(*(ptr)) ret___;           \
-                                     \
-    cpu_intr_save(&flags___);        \
-    ret___ = *(ptr);                 \
-    *(ptr) = (val);                  \
-    cpu_intr_restore(flags___);      \
-    ret___;                          \
+#define latomic_swap(ptr, val, mo)     \
+MACRO_BEGIN                            \
+    unsigned long flags___;            \
+    typeof(*(ptr)) ret___;             \
+                                       \
+    cpu_intr_save(&flags___);          \
+    ret___ = *(ptr);                   \
+    *(ptr) = (val);                    \
+    cpu_intr_restore(flags___);        \
+    ret___;                            \
 MACRO_END
 #endif /* latomic_swap */
 
@@ -85,16 +97,16 @@ MACRO_BEGIN                                \
 MACRO_END
 #endif /* latomic_cas */
 
-#define latomic_fetch_op(ptr, val, op, mo)   \
-MACRO_BEGIN                                  \
-    unsigned long flags___;                  \
-    typeof(*(ptr)) ret___;                   \
-                                             \
-    cpu_intr_save(&flags___);                \
-    ret___ = *(ptr);                         \
-    *(ptr) op (val);                         \
-    cpu_intr_restore(flags___);              \
-    ret___;                                  \
+#define latomic_fetch_op(ptr, val, op, mo)     \
+MACRO_BEGIN                                    \
+    unsigned long flags___;                    \
+    typeof(*(ptr)) ret___;                     \
+                                               \
+    cpu_intr_save(&flags___);                  \
+    ret___ = *(ptr);                           \
+    *(ptr) op (val);                           \
+    cpu_intr_restore(flags___);                \
+    ret___;                                    \
 MACRO_END
 
 #ifndef latomic_fetch_add

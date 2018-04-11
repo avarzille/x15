@@ -32,7 +32,7 @@
 
 #include <kern/latomic.h>
 
-#ifdef ATOMICS_USE_LATOMIC
+#ifdef ATOMIC_USE_LATOMIC
 
 #define ATOMIC_RELAXED   LATOMIC_RELAXED
 #define ATOMIC_CONSUME   LATOMIC_RELAXED
@@ -64,10 +64,10 @@
 #define atomic_fence_acq_rel()   barrier()
 #define atomic_fence_seq_cst()   barrier()
 
-#endif /* ATOMICS_USE_LATOMIC */
+#endif /* ATOMIC_USE_LATOMIC */
 #endif /* CONFIG_SMP */
 
-#if defined(CONFIG_SMP) || !defined(ATOMICS_USE_LATOMIC)
+#if defined(CONFIG_SMP) || !defined(ATOMIC_USE_LATOMIC)
 
 #include <stdbool.h>
 
@@ -153,6 +153,6 @@ MACRO_END
 
 #define atomic_fence(mo) __atomic_thread_fence(mo)
 
-#endif /* ATOMICS_USE_LATOMIC */
+#endif /* ATOMIC_USE_LATOMIC */
 
 #endif /* KERN_ATOMIC_H */

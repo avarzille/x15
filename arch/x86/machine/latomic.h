@@ -19,42 +19,41 @@
  * Architecture-specific definitions for local atomics.
  */
 
-#ifndef _X86_LATOMIC_H
-#define _X86_LATOMIC_H
+#ifndef X86_LATOMIC_H
+#define X86_LATOMIC_H
 
 #include <stdint.h>
 
 #include <kern/macros.h>
 #include <machine/latomic_i.h>
 
-#define latomic_load(ptr, mo)             \
-MACRO_BEGIN                               \
-    typeof(latomic_load_n(ptr)) ret___;   \
-                                          \
-    latomic_barrier_entry(mo);            \
-    ret___ = latomic_load_n(ptr);         \
-    latomic_barrier_exit(mo);             \
-    (typeof(*(ptr)))ret___;               \
+#define latomic_load(ptr, mo)              \
+MACRO_BEGIN                                \
+    typeof(latomic_load_n(ptr)) ret___;    \
+                                           \
+    latomic_barrier_entry(mo);             \
+    ret___ = latomic_load_n(ptr);          \
+    latomic_barrier_exit(mo);              \
+    (typeof(*(ptr)))ret___;                \
 MACRO_END
 
-#define latomic_store(ptr, val, mo)                                          \
-MACRO_BEGIN                                                                  \
-    latomic_barrier_entry(mo);                                               \
-    latomic_choose_expr(ptr, latomic_store_64(ptr, val), *(ptr) = (val));    \
-    latomic_barrier_exit(mo);                                                \
-    (void)0;                                                                 \
-MACRO_END                                                                    \
+#define latomic_store(ptr, val, mo)                                        \
+MACRO_BEGIN                                                                \
+    latomic_barrier_entry(mo);                                             \
+    latomic_choose_expr(ptr, latomic_store_64(ptr, val), *(ptr) = (val));  \
+    latomic_barrier_exit(mo);                                              \
+MACRO_END                                                                  \
 
-#define latomic_swap(ptr, val, mo)                            \
-MACRO_BEGIN                                                   \
-    typeof(*(ptr)) ret___;                                    \
-                                                              \
-    latomic_barrier_entry(mo);                                \
-    ret___ = latomic_choose_expr(ptr,                         \
-                                 latomic_swap_64(ptr, val),   \
-                                 latomic_swap_n(ptr, val));   \
-    latomic_barrier_exit(mo);                                 \
-    ret___;                                                   \
+#define latomic_swap(ptr, val, mo)                             \
+MACRO_BEGIN                                                    \
+    typeof(*(ptr)) ret___;                                     \
+                                                               \
+    latomic_barrier_entry(mo);                                 \
+    ret___ = latomic_choose_expr(ptr,                          \
+                                 latomic_swap_64(ptr, val),    \
+                                 latomic_swap_n(ptr, val));    \
+    latomic_barrier_exit(mo);                                  \
+    ret___;                                                    \
 MACRO_END
 
 #define latomic_cas(ptr, oval, nval, mo)                            \
@@ -117,6 +116,9 @@ MACRO_BEGIN                                                          \
     ret___;                                                          \
 MACRO_END
 
-#define ATOMICS_USE_LATOMIC
+/*
+ * Report that local atomics are preferred in case of non-SMP configurations.
+ */
+#define ATOMIC_USE_LATOMIC
 
 #endif /* _X86_LATOMIC_H */
