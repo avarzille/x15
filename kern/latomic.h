@@ -18,7 +18,7 @@
  *
  * The local atomics module provides an interface similar in spirit and
  * purpose to that of regular atomics. The main difference is that local
- * atomics are meant to be used in a single processor. Thus, the are
+ * atomics are meant to be used in a single processor. Thus, they are
  * "local" to that CPU.
  */
 
@@ -41,9 +41,11 @@
 #define LATOMIC_ACQ_REL   __ATOMIC_ACQ_REL
 #define LATOMIC_SEQ_CST   __ATOMIC_SEQ_CST
 
-/* Note that in this macro, the declaration and assignment are
+/*
+ * Note that in this macro, the declaration and assignment are
  * in the same line. This is done to avoid errors regarding
- * assignment to constants when the parameter 'ptr' is const. */
+ * assignment to constants when the parameter 'ptr' is const.
+ */
 #ifndef latomic_load
 #define latomic_load(ptr, mo)          \
 MACRO_BEGIN                            \
