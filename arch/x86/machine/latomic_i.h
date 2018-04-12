@@ -81,11 +81,16 @@ MACRO_END
 /*
  * XXX: Gross hack to suppress annoying warnings from the compiler.
  */
-#define latomic_store_64(ptr, val)                             \
-MACRO_BEGIN                                                    \
-    latomic_swap_64(ptr,                                       \
-        ((union { typeof(val) v; uint64_t u; }) { val }).u);   \
-MACRO_END                                                      \
+#define latomic_store_64(ptr, val)     \
+MACRO_BEGIN                            \
+    union {                            \
+        typeof(val) v;                 \
+        uint64_t u;                    \
+    } tmp___;                          \
+                                       \
+    tmp___.v = (val);                  \
+    latomic_swap_64((ptr), tmp___.u);  \
+MACRO_END
 
 /*
  * The first expression refers to a 64-bit value. The second
@@ -133,7 +138,7 @@ MACRO_END
  */
 #define latomic_load_n(ptr)                        \
   latomic_choose_expr(ptr, latomic_load_64(ptr),   \
-                      (uintptr_t)__atomic_load_n((ptr), __ATOMIC_RELAXED))
+                      __atomic_load_n((ptr), __ATOMIC_RELAXED))
 
 #define latomic_swap_n(ptr, val)               \
 MACRO_BEGIN                                    \

@@ -27,14 +27,12 @@
 #include <kern/macros.h>
 #include <machine/latomic_i.h>
 
-#define latomic_load(ptr, mo)              \
-MACRO_BEGIN                                \
-    typeof(latomic_load_n(ptr)) ret___;    \
-                                           \
-    latomic_barrier_entry(mo);             \
-    ret___ = latomic_load_n(ptr);          \
-    latomic_barrier_exit(mo);              \
-    (typeof(*(ptr)))ret___;                \
+#define latomic_load(ptr, mo)                     \
+MACRO_BEGIN                                       \
+    latomic_barrier_entry(mo);                    \
+    typeof(*(ptr)) ret___ = latomic_load_n(ptr);  \
+    latomic_barrier_exit(mo);                     \
+    ret___;                                       \
 MACRO_END
 
 #define latomic_store(ptr, val, mo)                                        \
