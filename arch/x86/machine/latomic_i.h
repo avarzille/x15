@@ -78,19 +78,7 @@ MACRO_BEGIN                                                        \
     rval_;                                                         \
 MACRO_END
 
-/*
- * XXX: Gross hack to suppress annoying warnings from the compiler.
- */
-#define latomic_store_64(ptr, val)     \
-MACRO_BEGIN                            \
-    union {                            \
-        typeof(val) v;                 \
-        uint64_t u;                    \
-    } tmp_;                            \
-                                       \
-    tmp_.v = (val);                    \
-    latomic_swap_64((ptr), tmp_.u);    \
-MACRO_END
+#define latomic_store_64(ptr, val)   latomic_swap_64(ptr, (uintptr_t)(val))
 
 /*
  * The first expression refers to a 64-bit value. The second
