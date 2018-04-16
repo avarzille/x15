@@ -30,9 +30,9 @@
 #define latomic_load(ptr, mo)                     \
 MACRO_BEGIN                                       \
     latomic_barrier_entry(mo);                    \
-    typeof(*(ptr)) ret___ = latomic_load_n(ptr);  \
+    typeof(*(ptr)) ret_ = latomic_load_n(ptr);    \
     latomic_barrier_exit(mo);                     \
-    ret___;                                       \
+    ret_;                                         \
 MACRO_END
 
 #define latomic_store(ptr, val, mo)                                        \
@@ -44,74 +44,74 @@ MACRO_END                                                                  \
 
 #define latomic_swap(ptr, val, mo)                             \
 MACRO_BEGIN                                                    \
-    typeof(*(ptr)) ret___;                                     \
+    typeof(*(ptr)) ret_;                                       \
                                                                \
     latomic_barrier_entry(mo);                                 \
-    ret___ = latomic_choose_expr(ptr,                          \
+    ret_ = latomic_choose_expr(ptr,                            \
                                  latomic_swap_64(ptr, val),    \
                                  latomic_swap_n(ptr, val));    \
     latomic_barrier_exit(mo);                                  \
-    ret___;                                                    \
+    ret_;                                                      \
 MACRO_END
 
 #define latomic_cas(ptr, oval, nval, mo)                            \
 MACRO_BEGIN                                                         \
-    typeof(*(ptr)) ret___;                                          \
+    typeof(*(ptr)) ret_;                                            \
                                                                     \
     latomic_barrier_entry(mo);                                      \
-    ret___ = latomic_choose_expr(ptr,                               \
+    ret_ = latomic_choose_expr(ptr,                                 \
                                  latomic_cas_64(ptr, oval, nval),   \
                                  latomic_cas_n(ptr, oval, nval));   \
     latomic_barrier_exit(mo);                                       \
-    ret___;                                                         \
+    ret_;                                                           \
 MACRO_END
 
 #define latomic_fetch_add(ptr, val, mo)                             \
 MACRO_BEGIN                                                         \
-   typeof(*(ptr)) ret___;                                           \
+   typeof(*(ptr)) ret_;                                             \
                                                                     \
    latomic_barrier_entry(mo);                                       \
-   ret___ = latomic_choose_expr(ptr,                                \
+   ret_ = latomic_choose_expr(ptr,                                  \
                                 latomic_cas_loop_64(ptr, +, val),   \
                                 latomic_fetch_add_n(ptr, val));     \
    latomic_barrier_exit(mo);                                        \
-   ret___;                                                          \
+   ret_;                                                            \
 MACRO_END
 
 #define latomic_fetch_and(ptr, val, mo)                              \
 MACRO_BEGIN                                                          \
-    typeof(*(ptr)) ret___;                                           \
+    typeof(*(ptr)) ret_;                                             \
                                                                      \
     latomic_barrier_entry(mo);                                       \
-    ret___ = latomic_choose_expr(ptr,                                \
+    ret_ = latomic_choose_expr(ptr,                                  \
                                  latomic_cas_loop_64(ptr, &, val),   \
                                  latomic_fetch_and_n(ptr, val));     \
     latomic_barrier_exit(mo);                                        \
-    ret___;                                                          \
+    ret_;                                                            \
 MACRO_END
 
 #define latomic_fetch_or(ptr, val, mo)                               \
 MACRO_BEGIN                                                          \
-    typeof(*(ptr)) ret___;                                           \
+    typeof(*(ptr)) ret_;                                             \
                                                                      \
     latomic_barrier_entry(mo);                                       \
-    ret___ = latomic_choose_expr(ptr,                                \
+    ret_ = latomic_choose_expr(ptr,                                  \
                                  latomic_cas_loop_64(ptr, |, val),   \
                                  latomic_fetch_or_n(ptr, val));      \
     latomic_barrier_exit(mo);                                        \
-    ret___;                                                          \
+    ret_;                                                            \
 MACRO_END
 
 #define latomic_fetch_xor(ptr, val, mo)                              \
 MACRO_BEGIN                                                          \
-    typeof(*(ptr)) ret___;                                           \
+    typeof(*(ptr)) ret_;                                             \
                                                                      \
     latomic_barrier_entry(mo);                                       \
-    ret___ = latomic_choose_expr(ptr,                                \
+    ret_ = latomic_choose_expr(ptr,                                  \
                                  latomic_cas_loop_64(ptr, ^, val),   \
                                  latomic_fetch_xor_n(ptr, val));     \
     latomic_barrier_exit(mo);                                        \
-    ret___;                                                          \
+    ret_;                                                            \
 MACRO_END
 
 /*
