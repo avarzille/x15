@@ -169,6 +169,12 @@ MACRO_BEGIN                                                        \
     and_ret_;                                                      \
 MACRO_END                                                          \
 
+#define latomic_and_n(ptr, val)               \
+MACRO_BEGIN                                   \
+    asm volatile("and %0, %1"                 \
+                 : : "r" (val), "m" (*ptr));  \
+MACRO_END
+
 #define latomic_fetch_or_n(ptr, val)                               \
 MACRO_BEGIN                                                        \
     typeof(*(ptr)) or_ret_, tmp_;                                  \
@@ -180,6 +186,12 @@ MACRO_BEGIN                                                        \
     or_ret_;                                                       \
 MACRO_END
 
+#define latomic_or_n(ptr, val)                \
+MACRO_BEGIN                                   \
+    asm volatile("or %0, %1"                  \
+                 : : "r" (val), "m" (*ptr));  \
+MACRO_END
+
 #define latomic_fetch_xor_n(ptr, val)                              \
 MACRO_BEGIN                                                        \
     typeof(*(ptr)) xor_ret_, tmp_;                                 \
@@ -189,6 +201,12 @@ MACRO_BEGIN                                                        \
         xor_ret_ = latomic_cas_n(ptr, tmp_, tmp_ ^ (val));         \
     } while (tmp_ != xor_ret_);                                    \
     xor_ret_;                                                      \
+MACRO_END
+
+#define latomic_xor_n(ptr, val)               \
+MACRO_BEGIN                                   \
+    asm volatile("xor %0, %1"                 \
+                 : : "r" (val), "m" (*ptr));  \
 MACRO_END
 
 #endif /* _X86_LATOMIC_I_H */

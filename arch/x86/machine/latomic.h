@@ -90,6 +90,15 @@ MACRO_BEGIN                                                          \
     ret_;                                                            \
 MACRO_END
 
+#define latomic_and(ptr, val, mo)                             \
+MACRO_BEGIN                                                   \
+    latomic_barrier_entry(mo);                                \
+    latomic_choose_expr(ptr,                                  \
+                           latomic_cas_loop_64(ptr, &, val),  \
+                           latomic_and_n(ptr, val));          \
+    latomic_barrier_exit(mo);                                 \
+MACRO_END
+
 #define latomic_fetch_or(ptr, val, mo)                               \
 MACRO_BEGIN                                                          \
     typeof(*(ptr)) ret_;                                             \
@@ -102,6 +111,15 @@ MACRO_BEGIN                                                          \
     ret_;                                                            \
 MACRO_END
 
+#define latomic_or(ptr, val, mo)                              \
+MACRO_BEGIN                                                   \
+    latomic_barrier_entry(mo);                                \
+    latomic_choose_expr(ptr,                                  \
+                           latomic_cas_loop_64(ptr, |, val),  \
+                           latomic_or_n(ptr, val));           \
+    latomic_barrier_exit(mo);                                 \
+MACRO_END
+
 #define latomic_fetch_xor(ptr, val, mo)                              \
 MACRO_BEGIN                                                          \
     typeof(*(ptr)) ret_;                                             \
@@ -112,6 +130,15 @@ MACRO_BEGIN                                                          \
                                  latomic_fetch_xor_n(ptr, val));     \
     latomic_barrier_exit(mo);                                        \
     ret_;                                                            \
+MACRO_END
+
+#define latomic_xor(ptr, val, mo)                             \
+MACRO_BEGIN                                                   \
+    latomic_barrier_entry(mo);                                \
+    latomic_choose_expr(ptr,                                  \
+                           latomic_cas_loop_64(ptr, ^, val),  \
+                           latomic_xor_n(ptr, val));          \
+    latomic_barrier_exit(mo);                                 \
 MACRO_END
 
 /*

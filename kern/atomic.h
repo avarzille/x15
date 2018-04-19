@@ -59,10 +59,7 @@
 #define atomic_load   latomic_load
 #define atomic_store  latomic_store
 
-#define atomic_fence_acquire()   barrier()
-#define atomic_fence_release()   barrier()
-#define atomic_fence_acq_rel()   barrier()
-#define atomic_fence_seq_cst()   barrier()
+#define atomic_fence(mo)   barrier()
 
 #endif /* ATOMIC_USE_LATOMIC */
 #endif /* CONFIG_SMP */
